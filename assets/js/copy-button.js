@@ -1,19 +1,24 @@
 const copyLabels = document.querySelectorAll('.copy-label');
 const copyCurlLabels = document.querySelectorAll('.copy-curl-label');
+const copyPlayLabels = document.querySelectorAll('.copy-play-label');
 
-addButtons(copyLabels, false);
-addButtons(copyCurlLabels, true);
+addButtons(copyLabels, 'copy');
+addButtons(copyCurlLabels, 'curl');
+addButtons(copyPlayLabels, 'play');
 
-function addButtons(labels, curl) {
+function addButtons(labels, type) {
     labels.forEach((copyLabel) => {
         const snippet = copyLabel.parentNode.previousElementSibling;
         const text = snippet.innerText.trim();
 
         var buttonWrap = document.createElement('div');
         buttonWrap.className = 'copy-button-wrap';
-        buttonWrap.appendChild(createButton(text, 'Copy', 'Copy snippet to clipboard', false));
-        if (curl) {           
-            buttonWrap.appendChild(createButton(text, 'Copy as cURL', 'Copy snippet as cURL', true));
+        buttonWrap.appendChild(createButton(text, 'Copy', 'Copy snippet to clipboard', 'copy'));
+
+        if (type === 'curl') {
+            buttonWrap.appendChild(createButton(text, 'Copy as cURL', 'Copy snippet as cURL', 'curl'));
+        } else if (type === 'play') {
+            buttonWrap.appendChild(createPlaygroundButton(text));
         }
         
         snippet.style.marginBottom = 0;
@@ -22,17 +27,35 @@ function addButtons(labels, curl) {
     });
 }
 
-function createButton(textToCopy, buttonText, buttonAriaLabel, curl) {
+function createButton(textToCopy, buttonText, buttonAriaLabel, type) {
     var copyButton = document.createElement('button');
     copyButton.className = 'copy-button';
     copyButton.type = 'button';
     copyButton.innerText = buttonText;
     copyButton.ariaLabel = buttonAriaLabel;
 
-    copyButton.setAttribute('data-action', curl ? 'copy_as_curl' : 'copy_code');
-    copyButton.setAttribute('data-text', curl ? addCurl(textToCopy) : textToCopy);
+    if (type === 'curl') {
+        copyButton.setAttribute('data-action', 'copy_as_curl');
+        copyButton.setAttribute('data-text', addCurl(textToCopy));
+    } else {
+        copyButton.setAttribute('data-action', 'copy_code');
+        copyButton.setAttribute('data-text', textToCopy);
+    }
 
     return copyButton;
+}
+
+function createPlaygroundButton(pplQuery) {
+    var playButton = document.createElement('button');
+    playButton.className = 'copy-button';
+    playButton.type = 'button';
+    playButton.innerText = 'Try in Playground';
+    playButton.ariaLabel = 'Open query in OpenSearch Playground';
+
+    playButton.setAttribute('data-action', 'open_playground');
+    playButton.setAttribute('data-query', pplQuery);
+
+    return playButton;
 }
 
 function addCurl(textToCopy) {

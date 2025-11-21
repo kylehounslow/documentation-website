@@ -15,7 +15,8 @@ const actionHandlers = {
     send_feedback: () => sendFeedback(),
     switch_tab: (el) => switchTab({ target: el }, el.getAttribute('data-tab')),
     copy_code: (el) => copyCode(el),
-    copy_as_curl: (el) => copyAsCurl(el)
+    copy_as_curl: (el) => copyAsCurl(el),
+    open_playground: (el) => openPlayground(el)
 };
 
 
@@ -149,4 +150,30 @@ function copyAsCurl(button) {
         : `curl -X ${method} "localhost:9200${formattedPath}"`;
         
     window.navigator.clipboard.writeText(curlCommand);
+}
+
+function openPlayground(button) {
+    let query = button.getAttribute('data-query');
+
+    // Replace source=otellogs with source=otel-demo-logs* to match playground logs index pattern.
+    query = query.replace(/source\s*=\s*otellogs/gi, 'source=otel-demo-logs*');
+
+    // Replace @timestamp with observedTimestamp to match playground field names.
+    query = query.replace(/@timestamp/g, 'observedTimestamp');
+
+    // Build the playground URL using RISON-like format (compact URL encoding)
+    const baseUrl = 'https://obs-playground-dev-027423573553.kylhouns.people.aws.dev/w/Qvvg5d/app/explore/logs/#';
+
+    // Encode the query for URL (only the query value needs encoding)
+    const encodedQuery = encodeURIComponent(query);
+
+    // Build _q parameter in RISON format
+    const qParam = `(dataset:(dataSource:(id:ccd2ec40-c4c2-11f0-8fcd-2b7876d71fa7,title:'data cluster',type:'No Engine Type Available'),id:'4f5fde90-c4d0-11f0-8fcd-2b7876d71fa7',timeFieldName:observedTimestamp,title:'otel-demo-logs*',type:INDEX_PATTERN),language:PPL,query:'${encodedQuery}')`;
+
+    // Build _g parameter in RISON format
+    const gParam = `(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15m,to:now))`;
+
+    const url = `${baseUrl}?_q=${qParam}&_g=${gParam}`;
+
+    window.open(url, '_blank');
 }
