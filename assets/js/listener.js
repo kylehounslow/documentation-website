@@ -168,7 +168,8 @@ function openPlayground(button) {
     const encodedQuery = encodeURIComponent(query);
 
     // Build _q parameter in RISON format
-    const qParam = `(dataset:(dataSource:(id:ccd2ec40-c4c2-11f0-8fcd-2b7876d71fa7,title:'data cluster',type:'No Engine Type Available'),id:'4f5fde90-c4d0-11f0-8fcd-2b7876d71fa7',timeFieldName:observedTimestamp,title:'otel-demo-logs*',type:INDEX_PATTERN),language:PPL,query:'${encodedQuery}')`;
+    // const qParam = `(dataset:(dataSource:(id:ccd2ec40-c4c2-11f0-8fcd-2b7876d71fa7,title:'data cluster',type:'No Engine Type Available'),id:'4f5fde90-c4d0-11f0-8fcd-2b7876d71fa7',timeFieldName:observedTimestamp,title:'otel-demo-logs*',type:INDEX_PATTERN),language:PPL,query:'${encodedQuery}')`;
+    const qParam = `(dataset:(dataSource:(id:11c38c30-c3f4-11f0-85c9-87c2e8e28815,title:'data cluster',type:'No Engine Type Available'),id:'a7ab3950-c8a9-11f0-85c9-87c2e8e28815',timeFieldName:observedTimestamp,title:'otel-demo-logs*',type:INDEX_PATTERN),language:PPL,query:'${encodedQuery}')`;
 
     // Build _g parameter in RISON format
     const gParam = `(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15m,to:now))`;
