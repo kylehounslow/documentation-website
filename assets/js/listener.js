@@ -162,8 +162,8 @@ function openPlayground(button) {
     query = query.replace(/@timestamp/g, 'observedTimestamp');
 
     // Build the playground URL using RISON-like format (compact URL encoding)
-    const baseUrl = 'https://obs-playground-dev-027423573553.kylhouns.people.aws.dev/w/Qvvg5d/app/explore/logs/#';
-
+    // const baseUrl = 'https://obs-playground-dev-027423573553.kylhouns.people.aws.dev/w/Qvvg5d/app/explore/logs/#';
+    const baseUrl = 'https://observability-playground-beta.kylhouns.people.aws.dev/w/CVUoEY/app/explore/logs/#'
     // Encode the query for URL (only the query value needs encoding)
     const encodedQuery = encodeURIComponent(query);
 
