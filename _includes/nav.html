@@ -10,39 +10,48 @@
     The case-sensitivity of string sorting is determined by `site.nav_sort`.
 {%- endcomment -%}
 
-{%- comment -%}Pre-compute and cache page lists to avoid repeated filtering{%- endcomment -%}
-{%- assign titled_pages = include.pages | where_exp:"item", "item.title != nil" -%}
+{%- comment -%}Cache expensive computations{%- endcomment -%}
+{%- assign cache_key = include.key | default: 'default' | append: '_' | append: include.pages.size -%}
+{%- unless site.data.nav_cache[cache_key] -%}
+  {%- assign titled_pages = include.pages | where_exp:"item", "item.title != nil" -%}
 
-{%- comment -%}Separate pages by nav_order type for efficient sorting{%- endcomment -%}
-{%- assign string_ordered_pages = titled_pages | where_exp:"item", "item.nav_order == nil" -%}
-{%- assign nav_ordered_pages = titled_pages | where_exp:"item", "item.nav_order != nil" -%}
+  {%- comment -%}Separate pages by nav_order type for efficient sorting{%- endcomment -%}
+  {%- assign string_ordered_pages = titled_pages | where_exp:"item", "item.nav_order == nil" -%}
+  {%- assign nav_ordered_pages = titled_pages | where_exp:"item", "item.nav_order != nil" -%}
 
-{%- comment -%}Group nav_ordered_pages by type (number vs string){%- endcomment -%}
-{%- assign nav_ordered_groups = nav_ordered_pages | group_by_exp:"item", "item.nav_order | jsonify | slice: 0" -%}
-{%- assign number_ordered_pages = "" | split:"X" -%}
-{%- for group in nav_ordered_groups -%}
-  {%- if group.name == '"' -%}
-    {%- assign string_ordered_pages = string_ordered_pages | concat: group.items -%}
+  {%- comment -%}Group nav_ordered_pages by type (number vs string){%- endcomment -%}
+  {%- assign nav_ordered_groups = nav_ordered_pages | group_by_exp:"item", "item.nav_order | jsonify | slice: 0" -%}
+  {%- assign number_ordered_pages = "" | split:"X" -%}
+  {%- for group in nav_ordered_groups -%}
+    {%- if group.name == '"' -%}
+      {%- assign string_ordered_pages = string_ordered_pages | concat: group.items -%}
+    {%- else -%}
+      {%- assign number_ordered_pages = number_ordered_pages | concat: group.items -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- assign sorted_number_ordered_pages = number_ordered_pages | sort:"nav_order" -%}
+
+  {%- comment -%}Sort string pages{%- endcomment -%}
+  {%- assign string_ordered_groups = string_ordered_pages | group_by_exp:"item", "item.nav_order | default: item.title | append:''" -%}
+  {%- if site.nav_sort == 'case_insensitive' -%}
+    {%- assign sorted_string_ordered_groups = string_ordered_groups | sort_natural:"name" -%}
   {%- else -%}
-    {%- assign number_ordered_pages = number_ordered_pages | concat: group.items -%}
+    {%- assign sorted_string_ordered_groups = string_ordered_groups | sort:"name" -%}
   {%- endif -%}
-{%- endfor -%}
+  {%- assign sorted_string_ordered_pages = "" | split:"X" -%}
+  {%- for group in sorted_string_ordered_groups -%}
+    {%- assign sorted_string_ordered_pages = sorted_string_ordered_pages | concat: group.items -%}
+  {%- endfor -%}
 
-{%- assign sorted_number_ordered_pages = number_ordered_pages | sort:"nav_order" -%}
+  {%- assign pages_list = sorted_number_ordered_pages | concat: sorted_string_ordered_pages -%}
+  
+  {%- comment -%}Store in cache{%- endcomment -%}
+  {%- assign site.data.nav_cache[cache_key] = pages_list -%}
+{%- endunless -%}
 
-{%- comment -%}Sort string pages{%- endcomment -%}
-{%- assign string_ordered_groups = string_ordered_pages | group_by_exp:"item", "item.nav_order | default: item.title | append:''" -%}
-{%- if site.nav_sort == 'case_insensitive' -%}
-  {%- assign sorted_string_ordered_groups = string_ordered_groups | sort_natural:"name" -%}
-{%- else -%}
-  {%- assign sorted_string_ordered_groups = string_ordered_groups | sort:"name" -%}
-{%- endif -%}
-{%- assign sorted_string_ordered_pages = "" | split:"X" -%}
-{%- for group in sorted_string_ordered_groups -%}
-  {%- assign sorted_string_ordered_pages = sorted_string_ordered_pages | concat: group.items -%}
-{%- endfor -%}
-
-{%- assign pages_list = sorted_number_ordered_pages | concat: sorted_string_ordered_pages -%}
+{%- comment -%}Use cached result{%- endcomment -%}
+{%- assign pages_list = site.data.nav_cache[cache_key] -%}
 
 {%- comment -%}Pre-compute current page context for faster lookups{%- endcomment -%}
 {%- assign current_collection = page.collection -%}

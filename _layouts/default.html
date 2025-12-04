@@ -70,12 +70,13 @@ layout: table_wrappers
             <version-selector selected="{{ site.data.versions.current }}"></version-selector>
           {% endif %}
           </div>
+        {%- comment -%}Only render navigation for current page's collection to reduce calls{%- endcomment -%}
         {% assign pages_top_size = site.html_pages
             | where_exp:"item", "item.title != nil"
             | where_exp:"item", "item.parent == nil"
             | where_exp:"item", "item.nav_exclude != true"
             | size %}
-        {% if pages_top_size > 0 %}
+        {% if pages_top_size > 0 and page.collection == nil %}
           {% include nav.html pages=site.html_pages key=nil expanded=true %}
         {% endif %}
 
@@ -97,7 +98,9 @@ layout: table_wrappers
             {% assign collection_key = collection_entry[0] %}
             {% assign collection_value = collection_entry[1] %}
             {% assign collection = site[collection_key] %}
-            {% if collection_value.nav_exclude != true %}
+            {%- comment -%}Only render nav for current collection or if no specific collection{%- endcomment -%}
+            {% unless collection_value.nav_exclude %}
+              {% if page.collection == collection_key or page.collection == nil %}
               {% assign owned_tree_id = collection_key | append: "_" | append: forloop.index | append: "_navitems" | replace: " ", "_" %}
               {% if collections_size > 1 or pages_top_size > 0 %}
                 {% if collection_value.nav_fold == true %}
@@ -142,7 +145,8 @@ layout: table_wrappers
               {% else %}
                 {% include nav.html pages=collection key=collection_key owned_tree_id=owned_tree_id %}
               {% endif %}
-            {% endif %}
+              {% endif %}
+            {% endunless %}
           {% endfor %}
         {% endif %}
         </nav>
